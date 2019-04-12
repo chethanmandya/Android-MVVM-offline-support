@@ -32,13 +32,13 @@ App has been integrated with the Google Fit using the Google Fit SDK to track th
 
 Programming Practices Followed
 -----------------------------------------
-a) Android Architectural Components (Lifecycle, LiveData, ViewModel, Room Persistence)
-b) Koin for Dependency Injection
+1. Android Architectural Components (Lifecycle, LiveData, ViewModel, Room Persistence)
+2. Koin for Dependency Injection
         A pragmatic lightweight dependency injection framework for Kotlin developers: no proxy, no code generation, no reflection!
         For more information - https://insert-koin.io/
-c) MVVM
-d) Retrofit with Okhttp
-e) Room for data caching
-f) JUnit and Mockito for Unit testing
-g) Stetho as debug bridge
-h) Used JetPack software components.
+3. MVVM
+4. Retrofit with Okhttp
+5. Room for data caching
+6. JUnit and Mockito for Unit testing
+7. Stetho as debug bridge
+8. Used JetPack software components.

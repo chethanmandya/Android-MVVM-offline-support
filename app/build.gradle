@@ -1,0 +1,135 @@
+apply plugin: 'com.android.application'
+apply plugin: 'jacoco'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-allopen'
+
+android {
+    compileSdkVersion build_versions.target_sdk
+    buildToolsVersion build_versions.build_tools
+    defaultConfig {
+        applicationId "com.chethan.sport"
+        minSdkVersion build_versions.min_sdk
+        targetSdkVersion build_versions.target_sdk
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "com.chethan.sport.db.util.TestRunner"
+
+    }
+    buildTypes {
+        debug {
+            testCoverageEnabled !project.hasProperty('android.injected.invoked.from.ide')
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    dataBinding {
+        enabled = true
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    sourceSets {
+        androidTest.java.srcDirs += "src/test-common/java"
+        test.java.srcDirs += "src/test-common/java"
+    }
+    lintOptions {
+        lintConfig rootProject.file('lint.xml')
+    }
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+}
+
+jacoco {
+    toolVersion = "0.7.4+"
+}
+
+dependencies {
+    implementation deps.support.app_compat
+    implementation deps.support.recyclerview
+    implementation deps.support.cardview
+    implementation deps.support.design
+    implementation deps.room.runtime
+    implementation deps.lifecycle.runtime
+    implementation deps.lifecycle.extensions
+    implementation deps.lifecycle.java8
+    implementation deps.retrofit.runtime
+    implementation deps.retrofit.gson
+    implementation deps.glide.runtime
+
+    implementation deps.constraint_layout
+    implementation deps.kotlin.stdlib
+
+    kapt deps.room.compiler
+    kapt deps.lifecycle.compiler
+
+    testImplementation deps.junit
+    testImplementation deps.mock_web_server
+    testImplementation deps.arch_core.testing
+    testImplementation deps.mockito.core
+    androidTestImplementation deps.atsl.runner
+    androidTestImplementation deps.atsl.rules
+
+    androidTestImplementation deps.support.recyclerview
+    androidTestImplementation deps.support.cardview
+
+    androidTestImplementation deps.espresso.core
+    androidTestImplementation deps.espresso.contrib
+
+    androidTestImplementation deps.arch_core.testing
+    androidTestImplementation deps.mockito.core
+    androidTestImplementation deps.mockito.android
+
+    // dependency injection framework
+    def koin_version = "1.0.2"
+    implementation "org.koin:koin-android:$koin_version"
+    implementation "org.koin:koin-androidx-scope:$koin_version"
+    implementation "org.koin:koin-androidx-viewmodel:$koin_version"
+
+    // Facebook stetho to view database
+    implementation 'com.facebook.stetho:stetho:1.5.0'
+
+    // Google fitness
+    implementation "com.google.android.gms:play-services-fitness:${google_play_services_library}"
+    implementation "com.google.android.gms:play-services-auth:${google_play_services_library}"
+    implementation "com.android.support:appcompat-v7:${google_support_library}"
+
+}
+
+task fullCoverageReport(type: JacocoReport) {
+    dependsOn 'createDebugCoverageReport'
+    dependsOn 'testDebugUnitTest'
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*',
+                      '**/*Test*.*', 'android/**/*.*',
+                      '**/*_MembersInjector.class',
+                      '**/Dagger*Component.class',
+                      '**/Dagger*Component$Builder.class',
+                      '**/*_*Factory.class',
+                      '**/*ComponentImpl.class',
+                      '**/*SubComponentBuilder.class']
+    def debugTree = fileTree(dir: "${buildDir}/intermediates/classes/debug", excludes: fileFilter)
+    def mainSrc = "${project.projectDir}/src/main/java"
+
+    sourceDirectories = files([mainSrc])
+    classDirectories = files([debugTree])
+    executionData = fileTree(dir: "$buildDir", includes: [
+            "jacoco/testDebugUnitTest.exec",
+            "outputs/code-coverage/connected/*coverage.ec"
+    ])
+}
+
+// we need all open to run tests which  a we enable only for debug builds.
+project.tasks.whenTaskAdded {
+    if (it.name == "testReleaseUnitTest") {
+        it.enabled = false
+    }
+}
